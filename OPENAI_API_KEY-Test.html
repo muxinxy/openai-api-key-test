@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OpenAI API Key Test</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        #content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        textarea {
+            width: 600px;
+            height: 200px;
+            font-size: 16px;
+            padding: 5px;
+        }
+        button {
+            padding: 5px 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        table {
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        <h1>OpenAI API Key Test</h1>
+        <textarea id="api-keys" placeholder="Enter your OpenAI API Keys, one per line"></textarea>
+        <button onclick="testAPIKeys()">Test API Keys</button>
+        <table id="results">
+            <tr>
+                <th>API Key</th>
+                <th>GPT-4 Validity</th>
+                <th>GPT-3.5-turbo Validity</th>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        function testAPIKey(apiKey, model, callback) {
+            $.ajax({
+                url: 'https://api.openai.com/v1/chat/completions',
+                type: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + apiKey
+                },
+                data: JSON.stringify({
+                    'model': model,
+                    'messages': [
+                        {
+                            'role': 'system',
+                            'content': 'You are a helpful assistant.'
+                        },
+                        {
+                            'role': 'user',
+                            'content': 'Hello'
+                        }
+                    ]
+                }),
+                success: function(data) {
+                    callback(null, 'Valid');
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    callback(null, 'Not valid');
+                }
+            });
+        }
+
+        function testAPIKeys() {
+            // Clear previous results
+            var resultsTable = document.getElementById('results');
+            while (resultsTable.rows.length > 1) {
+                resultsTable.deleteRow(1);
+            }
+
+            var apiKeys = document.getElementById('api-keys').value.split('\n');
+
+            function next(i) {
+                if (i < apiKeys.length) {
+                    var row = document.createElement('tr');
+                    var cell1 = document.createElement('td');
+                    cell1.textContent = apiKeys[i];
+                    row.appendChild(cell1);
+
+                    testAPIKey(apiKeys[i], 'gpt-4', function(err, result) {
+                        var cell2 = document.createElement('td');
+                        cell2.textContent = result;
+                        row.appendChild(cell2);
+
+                        testAPIKey(apiKeys[i], 'gpt-3.5-turbo', function(err, result) {
+                            var cell3 = document.createElement('td');
+                            cell3.textContent = result;
+                            row.appendChild(cell3);
+
+                            document.getElementById('results').appendChild(row);
+                            next(i + 1);
+                        });
+                    });
+                }
+            }
+
+            next(0);
+        }
+    </script>
+</body>
+</html>
