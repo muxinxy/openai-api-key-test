@@ -56,7 +56,7 @@
 
     <script>
         function testAPIKey(apiKey, model, callback) {
-            $.ajax({
+            jQuery.ajax({
                 url: 'https://api.openai.com/v1/chat/completions',
                 type: 'POST',
                 headers: {
